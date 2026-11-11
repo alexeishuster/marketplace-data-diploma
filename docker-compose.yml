@@ -1,0 +1,48 @@
+services:
+  # PostgreSQL - основная база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: diploma_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-marketplace}
+      POSTGRES_USER: ${POSTGRES_USER:-analyst}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strong_password_123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-analyst} -d ${POSTGRES_DB:-marketplace}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Metabase - BI-визуализация (подключается напрямую к PostgreSQL)
+  metabase:
+    image: metabase/metabase:v0.49.10
+    container_name: diploma_metabase
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${POSTGRES_DB:-marketplace}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER:-analyst}
+      MB_DB_PASS: ${POSTGRES_PASSWORD:-strong_password_123}
+      MB_DB_HOST: postgres
+      MB_EMOJI_IN_LOGS: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
