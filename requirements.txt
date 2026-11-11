@@ -1,0 +1,17 @@
+# Основные зависимости для ETL
+requests==2.34.2
+psycopg2-binary==2.9.13
+python-dotenv==1.0.1
+
+# Для аналитики
+pandas==2.3.3
+numpy==1.26.4
+sqlalchemy==2.0.57
+
+# Для визуализации
+matplotlib==3.9.4
+seaborn==0.13.2
+
+# Для качества кода (опционально)
+black==24.10.0
+flake8==7.1.1
